@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta name="description" content="Explore logistics operations, delivery status and SKU demand forecasts from a unified order dataset.">
+    <title>Northstar Logistics · Operations intelligence</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" type="module"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Northstar Logistics home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>northstar</strong><small>LOGISTICS INTELLIGENCE</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="dataset-status"><i></i><span id="dataset-caption">Loading dataset</span></span>
+        <span class="ai-status" id="ai-status">AI mode · checking</span>
+        <span class="avatar" aria-label="Operations workspace">OA</span>
+      </div>
+    </header>
+    <main id="top" class="page-shell">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">OPERATIONS OVERVIEW <span class="eyebrow-dot">/</span> LOGISTICS</p>
+          <h1>Good morning, AbdullaH</h1>
+          <p class="lede">A clear view of orders, delivery performance, and what demand may look like next.</p>
+        </div>
+        <div class="date-control">
+          <label>From <input id="date-start" type="date" aria-label="Start date"></label>
+          <span aria-hidden="true">→</span>
+          <label>To <input id="date-end" type="date" aria-label="End date"></label>
+          <button id="apply-dates" class="button button-dark">Apply range</button>
+        </div>
+      </section>
+
+      <section class="section-head">
+        <div><span class="section-kicker">01</span><h2>Network pulse</h2></div>
+        <span id="range-label" class="muted">—</span>
+      </section>
+      <section id="kpis" class="kpi-grid" aria-label="Key logistics metrics" aria-live="polite">
+        <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+      </section>
+      <p class="definition-note"><span class="info-mark">i</span> “On-time rate” is a status-based proxy: delivered ÷ (delivered + delayed). The source data has no promised delivery date or SLA; open and exception statuses are excluded from the rate.</p>
+
+      <section class="section-head section-head-spaced">
+        <div><span class="section-kicker">02</span><h2>Performance signals</h2></div>
+        <span class="muted">Grouped by order date and carrier status</span>
+      </section>
+    <section class="chart-grid" aria-label="Operational charts">
+        <article class="panel chart-panel chart-panel-wide">
+          <div class="panel-heading"><div><p class="panel-label">ORDER FLOW</p><h3>Volume over time</h3></div><span class="chart-unit">orders / month</span></div>
+          <div id="volume-chart" class="chart-host" aria-live="polite"></div>
+        </article>
+        <article class="panel chart-panel">
+          <div class="panel-heading"><div><p class="panel-label">DELIVERY STATUS</p><h3>What reached the finish line</h3></div><span class="chart-unit">orders</span></div>
+          <div id="performance-chart" class="chart-host"></div>
+          <p class="panel-footnote">“Delivered” and “delayed” reflect the supplied status labels.</p>
+        </article>
+        <article class="panel chart-panel">
+          <div class="panel-heading"><div><p class="panel-label">CARRIER MIX</p><h3>Delay rate by carrier</h3></div><span class="chart-unit">completed cohort</span></div>
+          <div id="carrier-chart" class="chart-host"></div>
+          <p class="panel-footnote">Rate = delayed ÷ (delivered + delayed); small cohorts can swing more.</p>
+        </article>
+      </section>
+
+      <section class="section-head section-head-spaced assistant-heading">
+        <div><span class="section-kicker">03</span><h2>Ask your operations data</h2></div>
+        <span class="pill pill-ai"><span class="sparkle">✳</span> AI-assisted analysis</span>
+      </section>
+      <section class="assistant-layout">
+        <div class="panel assistant-panel">
+          <div class="assistant-intro"><span class="assistant-orb">✳</span><div><h3>Your logistics analyst</h3><p>Ask a question. The interpreter routes it to a validated analytics tool, and the tool does the math.</p></div></div>
+          <form id="query-form" class="query-form">
+            <label for="query-input" class="sr-only">Ask a logistics question</label>
+            <textarea id="query-input" rows="2" maxlength="600" placeholder="Ask about a carrier, a time period, or SKU demand…" required></textarea>
+            <div class="query-form-footer"><span class="muted">Up to 600 characters</span><button id="ask-button" class="button button-accent" type="submit"><span>Run analysis</span><span aria-hidden="true">↗</span></button></div>
+          </form>
+          <div class="prompt-examples" aria-label="Example questions">
+            <button class="example-chip" type="button">Show delayed orders by week for the last 3 months</button>
+            <button class="example-chip" type="button">Which carrier has the highest delay rate?</button>
+            <button class="example-chip" type="button">How many orders were delivered late last month?</button>
+            <button class="example-chip" type="button">Predict demand for CRAYON-0008 for the next 4 months</button>
+          </div>
+        </div>
+        <aside class="panel scope-panel">
+          <p class="panel-label">ANALYSIS BOUNDARIES</p>
+          <h3>Answers you can inspect</h3>
+          <ul class="scope-list">
+            <li><span class="check-icon">✓</span><span><strong>Computed from source rows</strong><small>Model-selected plans run through fixed, validated analytics functions.</small></span></li>
+            <li><span class="check-icon">✓</span><span><strong>Filters are visible</strong><small>Every result shows its measure, grouping, date range, and method.</small></span></li>
+            <li><span class="check-icon">✓</span><span><strong>Source rows stay read-only</strong><small>No SQL is generated or executed by the model.</small></span></li>
+          </ul>
+        </aside>
+      </section>
+      <section id="query-result" class="result-section" aria-live="polite" aria-atomic="false"></section>
+
+      <section class="section-head section-head-spaced">
+        <div><span class="section-kicker">04</span><h2>Plan for future demand</h2></div>
+        <span class="muted">Moving average · SKU-level monthly units</span>
+      </section>
+      <section class="panel forecast-panel">
+        <form id="forecast-form" class="forecast-controls">
+          <label>Product SKU<select id="sku-select" required><option value="">Loading SKUs…</option></select></label>
+          <label>Forecast horizon<select id="horizon-select"><option value="3">3 months</option><option value="4" selected>4 months</option><option value="6">6 months</option></select></label>
+          <button id="forecast-button" class="button button-dark" type="submit">Generate forecast <span aria-hidden="true">↗</span></button>
+        </form>
+        <p class="forecast-note"><span class="info-mark">i</span> Many SKUs have only one historical order. Forecasts show a simple baseline, not a guarantee; on-hand stock and supplier lead times are not provided.</p>
+      </section>
+      <section id="forecast-result" class="result-section" aria-live="polite"></section>
+
+      <section class="section-head section-head-spaced">
+        <div><span class="section-kicker">05</span><h2>Latest orders</h2></div>
+        <span id="orders-count" class="muted">Read-only source rows</span>
+      </section>
+      <section class="panel table-panel">
+        <div class="table-scroll"><table><thead><tr><th>Order</th><th>Order date</th><th>Carrier</th><th>Destination</th><th>SKU</th><th>Qty</th><th>Status</th></tr></thead><tbody id="orders-body"><tr><td colspan="7" class="empty-cell">Loading recent orders…</td></tr></tbody></table></div>
+        <div class="table-foot"><span>Showing the 8 most recent matching orders</span><span>Source: provided mock logistics dataset</span></div>
+      </section>
+      <footer class="footer"><span>northstar <i>×</i> operations intelligence</span><span>One dataset · transparent assumptions · computed answers</span></footer>
+    </main>
+  </body>
+</html>
