@@ -56,10 +56,18 @@ Source: `Coding_assignment.docx`, `logistics-spec.docx`, `logistics-spec.pdf`, a
 ## Documentation and delivery
 
 - [x] Write README with setup, environment variables, architecture, data flow, AI approach, assumptions, limitations, unsupported queries, and future improvements.
-- [x] Initialize Git and prepare progressive commits with meaningful messages.
+- [x] Initialize Git and create progressive commits with meaningful messages in `assessment/`.
 - [ ] Create a public repository under `abdullahakram07` and push the finished source.
 - [ ] Deploy a stable, publicly accessible application and verify the deployed workflows.
 - [x] Prepare a detailed technical walkthrough script; Loom recording and public-link verification remain outstanding.
+- [ ] Configure a valid server-side `OPENAI_API_KEY` and verify live Responses API tool routing (not available in the local environment).
+
+## Delivery blockers
+
+- GitHub: the `abdullahakram07` profile is signed out in the available browser, and all configured `gh` tokens report invalid. Authenticate this account to create `spaceship-logistics-analytics` as a public repository and push `assessment/`.
+- Hosting: the Sites project and Worker package are prepared, but the restricted network cannot resolve its source Git host. Retry publication from a network that can reach the Sites source remote, or use the hosting dashboard's documented source workflow.
+- AI: provide `OPENAI_API_KEY` through the host's secret manager, then test the live AI route. The local rules-based mode is implemented and tested.
+- Loom: no Loom recording integration is available in this environment. Record using `WALKTHROUGH.md`, set sharing to anyone with the link, then add the verified URL.
 
 ## Data notes observed during initial inspection
 
