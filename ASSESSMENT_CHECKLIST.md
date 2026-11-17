@@ -60,12 +60,12 @@ Source: `Coding_assignment.docx`, `logistics-spec.docx`, `logistics-spec.pdf`, a
 - [x] Create a public repository under `abdullahakram07` and push the finished source.
 - [x] Deploy the application to Vercel and verify the public domain and production deployment.
 - [x] Configure the server-side production `OPENAI_API_KEY`; confirm `/api/meta` reports AI configured and run a live Responses API query.
-- [x] Prepare a detailed technical walkthrough script in `WALKTHROUGH.md`.
+- [ ] Prepare a technical walkthrough script for the Loom recording.
 - [ ] Record the walkthrough in Loom, set sharing to anyone with the link, and add the verified URL to the final submission.
 
 ## Remaining delivery item
 
-- Loom: record using `WALKTHROUGH.md`, set sharing to anyone with the link, then add the verified URL to the final submission.
+- Loom: prepare and record the walkthrough, set sharing to anyone with the link, then add the verified URL to the final submission.
 
 ## Verified delivery
 
