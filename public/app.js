@@ -240,7 +240,28 @@ async function boot() {
     $('#date-end').min = meta.dataset.startDate; $('#date-end').max = meta.dataset.endDate; $('#date-end').value = meta.dataset.endDate;
     const select = $('#sku-select'); select.replaceChildren(new Option('Select an SKU', ''));
     for (const sku of meta.skus) select.add(new Option(sku, sku));
-    if (meta.skus.includes(meta.recommendedForecastSku)) select.value = meta.recommendedForecastSku;
+    const skuSearch = $('#sku-search'); const skuOptions = $('#sku-options');
+    const closeSkuOptions = () => { skuOptions.hidden = true; skuSearch.setAttribute('aria-expanded', 'false'); };
+    const renderSkuOptions = () => {
+      const query = skuSearch.value.trim().toLowerCase();
+      const matches = meta.skus.filter((sku) => sku.toLowerCase().includes(query));
+      skuOptions.replaceChildren(...matches.map((sku) => {
+        const option = element('li', '', sku); option.setAttribute('role', 'option'); option.tabIndex = -1;
+        option.setAttribute('aria-selected', String(select.value === sku));
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => { select.value = sku; skuSearch.value = sku; closeSkuOptions(); });
+        return option;
+      }));
+      skuOptions.hidden = false; skuSearch.setAttribute('aria-expanded', 'true');
+    };
+    skuSearch.addEventListener('focus', renderSkuOptions);
+    skuSearch.addEventListener('input', renderSkuOptions);
+    skuSearch.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeSkuOptions();
+      if (event.key === 'ArrowDown' && !skuOptions.hidden) { event.preventDefault(); skuOptions.querySelector('[role="option"]')?.focus(); }
+    });
+    document.addEventListener('click', (event) => { if (!event.target.closest('.sku-picker')) closeSkuOptions(); });
+    if (meta.skus.includes(meta.recommendedForecastSku)) { select.value = meta.recommendedForecastSku; skuSearch.value = meta.recommendedForecastSku; }
     await loadDashboard();
   } catch (error) {
     $('#dataset-caption').textContent = 'Dataset unavailable';

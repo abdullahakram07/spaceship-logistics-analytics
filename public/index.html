@@ -103,7 +103,7 @@
       </section>
       <section class="panel forecast-panel">
         <form id="forecast-form" class="forecast-controls">
-          <label>Product SKU<select id="sku-select" required><option value="">Loading SKUs…</option></select></label>
+          <label>Product SKU<div class="sku-picker"><input id="sku-search" type="text" role="combobox" aria-autocomplete="list" aria-controls="sku-options" aria-expanded="false" placeholder="Choose or search SKU" autocomplete="off"><ul id="sku-options" class="sku-options" role="listbox" hidden></ul></div><select id="sku-select" required hidden><option value="">Loading SKUs…</option></select></label>
           <label>Forecast horizon<select id="horizon-select"><option value="3">3 months</option><option value="4" selected>4 months</option><option value="6">6 months</option></select></label>
           <button id="forecast-button" class="button button-dark" type="submit">Generate forecast <span aria-hidden="true">↗</span></button>
         </form>
