@@ -48,7 +48,7 @@ Source: `Coding_assignment.docx`, `logistics-spec.docx`, `logistics-spec.pdf`, a
 - [x] Separate question interpretation, tool selection, computation, and presentation.
 - [x] Validate and normalize dataset rows at the application boundary.
 - [x] Keep the architecture simple, maintainable, and dependency-light; no third-party runtime dependencies.
-- [x] Cover major workflows and important edge cases with tests (13 Node tests and packaged Worker validation).
+- [x] Cover major workflows and important edge cases with tests (14 Node tests and packaged Worker validation).
 - [x] Verify app start and build steps locally.
 - [x] Check local UI, loading/error/empty states, and basic accessibility semantics.
 - [x] Review project files and ignore rules; no API secrets are committed.
@@ -57,17 +57,23 @@ Source: `Coding_assignment.docx`, `logistics-spec.docx`, `logistics-spec.pdf`, a
 
 - [x] Write README with setup, environment variables, architecture, data flow, AI approach, assumptions, limitations, unsupported queries, and future improvements.
 - [x] Initialize Git and create progressive commits with meaningful messages in `assessment/`.
-- [ ] Create a public repository under `abdullahakram07` and push the finished source.
-- [ ] Deploy a stable, publicly accessible application and verify the deployed workflows.
-- [x] Prepare a detailed technical walkthrough script; Loom recording and public-link verification remain outstanding.
-- [ ] Configure a valid server-side `OPENAI_API_KEY` and verify live Responses API tool routing (not available in the local environment).
+- [x] Create a public repository under `abdullahakram07` and push the finished source.
+- [x] Deploy the application to Vercel and verify the public domain and production deployment.
+- [x] Configure the server-side production `OPENAI_API_KEY`; confirm `/api/meta` reports AI configured and run a live Responses API query.
+- [x] Prepare a detailed technical walkthrough script in `WALKTHROUGH.md`.
+- [ ] Record the walkthrough in Loom, set sharing to anyone with the link, and add the verified URL to the final submission.
 
-## Delivery blockers
+## Remaining delivery item
 
-- GitHub: the `abdullahakram07` profile is signed out in the available browser, and all configured `gh` tokens report invalid. Authenticate this account to create `spaceship-logistics-analytics` as a public repository and push `assessment/`.
-- Hosting: the Sites project and Worker package are prepared, but the restricted network cannot resolve its source Git host. Retry publication from a network that can reach the Sites source remote, or use the hosting dashboard's documented source workflow.
-- AI: provide `OPENAI_API_KEY` through the host's secret manager, then test the live AI route. The local rules-based mode is implemented and tested.
-- Loom: no Loom recording integration is available in this environment. Record using `WALKTHROUGH.md`, set sharing to anyone with the link, then add the verified URL.
+- Loom: record using `WALKTHROUGH.md`, set sharing to anyone with the link, then add the verified URL to the final submission.
+
+## Verified delivery
+
+- Public repository: `https://github.com/abdullahakram07/spaceship-logistics-analytics`.
+- Production app: `https://spaceship-logistics-analytics-drab.vercel.app/`.
+- Vercel production deployment is Ready and includes the production OpenAI secret.
+- Live `/api/meta` reports `aiConfigured: true`; a live natural-language query returned a computed result marked `OpenAI function routing (gpt-4o-mini)`.
+- No login is required for the public app.
 
 ## Data notes observed during initial inspection
 
