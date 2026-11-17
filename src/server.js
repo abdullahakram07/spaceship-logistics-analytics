@@ -25,8 +25,8 @@ const send = (res, code, value, extraHeaders = {}) => {
 
 async function serveStatic(req, res, pathname) {
   const requested = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
-  const target = path.resolve(PUBLIC, `.${requested}`);
-  if (!target.startsWith(`${PUBLIC}${path.sep}`)) return send(res, 404, { error: 'Not found.' });
+  const target = path.resolve(PUBLIC, '.' + requested);
+  if (!target.startsWith(PUBLIC + path.sep)) return send(res, 404, { error: 'Not found.' });
   let info;
   try { info = await stat(target); } catch { return send(res, 404, { error: 'Not found.' }); }
   if (!info.isFile()) return send(res, 404, { error: 'Not found.' });
@@ -42,38 +42,48 @@ async function serveStatic(req, res, pathname) {
 
 export async function createAppServer(rows) {
   const apiHandler = createApiHandler(rows);
-  return createServer(async (req, res) => {
-    try {
-      const url = new URL(req.url || '/', 'http://localhost');
-      const hasBody = !['GET', 'HEAD'].includes(req.method);
-      const request = new Request(url, {
-        method: req.method,
-        headers: req.headers,
-        ...(hasBody ? { body: Readable.toWeb(req), duplex: 'half' } : {}),
-      });
-      const apiResponse = await apiHandler(request, {
-        apiKey: process.env.OPENAI_API_KEY,
-        model: process.env.OPENAI_MODEL,
-        clientAddress: req.socket.remoteAddress || 'unknown',
-      });
-      if (apiResponse) {
-        res.writeHead(apiResponse.status, Object.fromEntries(apiResponse.headers.entries()));
-        res.end(Buffer.from(await apiResponse.arrayBuffer()));
-        return;
-      }
-      if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: 'Method not allowed.' }, { Allow: 'GET, HEAD' });
-      return serveStatic(req, res, url.pathname);
-    } catch (error) {
-      console.error('Request failed:', error instanceof Error ? error.message : 'Unknown error');
-      if (!res.headersSent) send(res, 500, { error: 'The request could not be completed. Please try again.' });
-      else res.destroy();
+  return createServer((req, res) => handleRequest(req, res, apiHandler));
+}
+
+async function handleRequest(req, res, apiHandler) {
+  try {
+    const url = new URL(req.url || '/', 'http://' + (req.headers.host || 'localhost'));
+    const hasBody = !['GET', 'HEAD'].includes(req.method);
+    const request = new Request(url, {
+      method: req.method,
+      headers: req.headers,
+      ...(hasBody ? { body: Readable.toWeb(req), duplex: 'half' } : {}),
+    });
+    const apiResponse = await apiHandler(request, {
+      apiKey: process.env.OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL,
+      clientAddress: req.socket?.remoteAddress || req.headers['x-forwarded-for'] || 'unknown',
+    });
+    if (apiResponse) {
+      res.writeHead(apiResponse.status, Object.fromEntries(apiResponse.headers.entries()));
+      res.end(Buffer.from(await apiResponse.arrayBuffer()));
+      return;
     }
-  });
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: 'Method not allowed.' }, { Allow: 'GET, HEAD' });
+    return serveStatic(req, res, url.pathname);
+  } catch (error) {
+    console.error('Request failed:', error instanceof Error ? error.message : 'Unknown error');
+    if (!res.headersSent) send(res, 500, { error: 'The request could not be completed. Please try again.' });
+    else res.destroy();
+  }
+}
+
+let serverlessHandlerPromise;
+
+export default async function vercelHandler(req, res) {
+  serverlessHandlerPromise ??= loadDataset().then((rows) => createApiHandler(rows));
+  const apiHandler = await serverlessHandlerPromise;
+  return handleRequest(req, res, apiHandler);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const rows = await loadDataset();
   const server = await createAppServer(rows);
   const port = Number(process.env.PORT || 3000);
-  server.listen(port, '0.0.0.0', () => console.log(`Logistics Analytics listening on http://localhost:${port} (${rows.length} orders)`));
+  server.listen(port, '0.0.0.0', () => console.log('Logistics Analytics listening on http://localhost:' + port + ' (' + rows.length + ' orders)'));
 }
