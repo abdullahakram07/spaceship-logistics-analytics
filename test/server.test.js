@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { Readable } from 'node:stream';
 import { loadDataset } from '../src/data.js';
 import { createApiHandler } from '../src/api.js';
+import vercelHandler from '../src/server.js';
 
 const rows = await loadDataset();
 const endpoint = createApiHandler(rows);
@@ -34,4 +36,26 @@ test('API handler interprets supported query without external credentials', asyn
   const result = await call('/api/query', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: 'Which carrier has the highest delay rate?' }) });
   assert.equal(result.status, 200);
   assert.match((await result.json()).answer, /has the highest delay rate/);
+});
+
+test('Vercel Node handler serves health and the dashboard entrypoint', async () => {
+  const invoke = async (url) => {
+    const req = Readable.from([]);
+    Object.assign(req, { method: 'GET', url, headers: { host: 'example.test' }, socket: { remoteAddress: '127.0.0.1' } });
+    const res = {
+      headersSent: false,
+      writeHead(status, headers) { this.status = status; this.headers = headers; },
+      end(body) { this.body = body; },
+    };
+    await vercelHandler(req, res);
+    return res;
+  };
+
+  const health = await invoke('/api/health');
+  assert.equal(health.status, 200);
+  assert.deepEqual(JSON.parse(health.body.toString()), { status: 'ok' });
+
+  const home = await invoke('/');
+  assert.equal(home.status, 200);
+  assert.match(home.body.toString(), /Good morning, AbdullaH/);
 });

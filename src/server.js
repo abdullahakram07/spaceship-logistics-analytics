@@ -47,7 +47,11 @@ export async function createAppServer(rows) {
 
 async function handleRequest(req, res, apiHandler) {
   try {
+<<<<<<< HEAD
     const url = new URL(req.url || '/', 'http://' + (req.headers.host || 'localhost'));
+=======
+    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+>>>>>>> 5a25bd3 (fix: add Vercel Node function handler)
     const hasBody = !['GET', 'HEAD'].includes(req.method);
     const request = new Request(url, {
       method: req.method,
