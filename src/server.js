@@ -5,14 +5,85 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadDataset } from './data.js';
 import { createApiHandler } from './api.js';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = path.join(ROOT, 'public');
-const MIME_TYPES = new Map([['.html', 'text/html; charset=utf-8'], ['.css', 'text/css; charset=utf-8'], ['.js', 'text/javascript; charset=utf-8'], ['.svg', 'image/svg+xml']]);
-const securityHeaders = {'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"};
-const send = (res, code, value, extraHeaders={}) => {res.writeHead(code, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store',...securityHeaders,...extraHeaders});res.end(JSON.stringify(value));};
-async function serveStatic(req,res,pathname) {const requested=pathname==='/'?'/index.html':decodeURIComponent(pathname);const target=path.resolve(PUBLIC,'.'+requested);if(!target.startsWith(PUBLIC+path.sep))return send(res,404,{error:'Not found.'});let info;try{info=await stat(target);}catch{return send(res,404,{error:'Not found.'});}if(!info.isFile())return send(res,404,{error:'Not found.'});const content=await readFile(target);res.writeHead(200,{...securityHeaders,'Content-Type':MIME_TYPES.get(path.extname(target))||'application/octet-stream','Content-Length':content.length,'Cache-Control':target.endsWith('index.html')?'no-cache':'public, max-age=3600'});res.end(req.method==='HEAD'?undefined:content);}
-export async function createAppServer(rows){const apiHandler=createApiHandler(rows);return createServer((req,res)=>handleRequest(req,res,apiHandler));}
-async function handleRequest(req,res,apiHandler){try{const url=new URL(req.url||'/', 'http://'+(req.headers.host||'localhost'));const hasBody=!['GET','HEAD'].includes(req.method);const request=new Request(url,{method:req.method,headers:req.headers,...(hasBody?{body:Readable.toWeb(req),duplex:'half'}:{})});const apiResponse=await apiHandler(request,{apiKey:process.env.OPENAI_API_KEY,model:process.env.OPENAI_MODEL,clientAddress:req.socket?.remoteAddress||req.headers['x-forwarded-for']||'unknown'});if(apiResponse){res.writeHead(apiResponse.status,Object.fromEntries(apiResponse.headers.entries()));res.end(Buffer.from(await apiResponse.arrayBuffer()));return;}if(req.method!=='GET'&&req.method!=='HEAD')return send(res,405,{error:'Method not allowed.'},{Allow:'GET, HEAD'});return serveStatic(req,res,url.pathname);}catch(error){console.error('Request failed:',error instanceof Error?error.message:'Unknown error');if(!res.headersSent)send(res,500,{error:'The request could not be completed. Please try again.'});else res.destroy();}}
+const MIME_TYPES = new Map([
+  ['.html', 'text/html; charset=utf-8'], ['.css', 'text/css; charset=utf-8'],
+  ['.js', 'text/javascript; charset=utf-8'], ['.svg', 'image/svg+xml'],
+]);
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
+  'X-Frame-Options': 'DENY', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+};
+
+const send = (res, code, value, extraHeaders = {}) => {
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...securityHeaders, ...extraHeaders });
+  res.end(JSON.stringify(value));
+};
+
+async function serveStatic(req, res, pathname) {
+  const requested = pathname === '/' ? '/index.html' : decodeURIComponent(pathname);
+  const target = path.resolve(PUBLIC, '.' + requested);
+  if (!target.startsWith(PUBLIC + path.sep)) return send(res, 404, { error: 'Not found.' });
+  let info;
+  try { info = await stat(target); } catch { return send(res, 404, { error: 'Not found.' }); }
+  if (!info.isFile()) return send(res, 404, { error: 'Not found.' });
+  const content = await readFile(target);
+  res.writeHead(200, {
+    ...securityHeaders,
+    'Content-Type': MIME_TYPES.get(path.extname(target)) || 'application/octet-stream',
+    'Content-Length': content.length,
+    'Cache-Control': target.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600',
+  });
+  res.end(req.method === 'HEAD' ? undefined : content);
+}
+
+export async function createAppServer(rows) {
+  const apiHandler = createApiHandler(rows);
+  return createServer((req, res) => handleRequest(req, res, apiHandler));
+}
+
+async function handleRequest(req, res, apiHandler) {
+  try {
+    const url = new URL(req.url || '/', 'http://' + (req.headers.host || 'localhost'));
+    const hasBody = !['GET', 'HEAD'].includes(req.method);
+    const request = new Request(url, {
+      method: req.method,
+      headers: req.headers,
+      ...(hasBody ? { body: Readable.toWeb(req), duplex: 'half' } : {}),
+    });
+    const apiResponse = await apiHandler(request, {
+      apiKey: process.env.OPENAI_API_KEY,
+      model: process.env.OPENAI_MODEL,
+      clientAddress: req.socket?.remoteAddress || req.headers['x-forwarded-for'] || 'unknown',
+    });
+    if (apiResponse) {
+      res.writeHead(apiResponse.status, Object.fromEntries(apiResponse.headers.entries()));
+      res.end(Buffer.from(await apiResponse.arrayBuffer()));
+      return;
+    }
+    if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: 'Method not allowed.' }, { Allow: 'GET, HEAD' });
+    return serveStatic(req, res, url.pathname);
+  } catch (error) {
+    console.error('Request failed:', error instanceof Error ? error.message : 'Unknown error');
+    if (!res.headersSent) send(res, 500, { error: 'The request could not be completed. Please try again.' });
+    else res.destroy();
+  }
+}
+
 let serverlessHandlerPromise;
-export default async function vercelHandler(req,res){serverlessHandlerPromise??=loadDataset().then(rows=>createApiHandler(rows));const apiHandler=await serverlessHandlerPromise;return handleRequest(req,res,apiHandler);}
-if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){const rows=await loadDataset();const server=await createAppServer(rows);const port=Number(process.env.PORT||3000);server.listen(port,'0.0.0.0',()=>console.log('Logistics Analytics listening on http://localhost:'+port+' ('+rows.length+' orders)'));}
+
+export default async function vercelHandler(req, res) {
+  serverlessHandlerPromise ??= loadDataset().then((rows) => createApiHandler(rows));
+  const apiHandler = await serverlessHandlerPromise;
+  return handleRequest(req, res, apiHandler);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const rows = await loadDataset();
+  const server = await createAppServer(rows);
+  const port = Number(process.env.PORT || 3000);
+  server.listen(port, '0.0.0.0', () => console.log('Logistics Analytics listening on http://localhost:' + port + ' (' + rows.length + ' orders)'));
+}
